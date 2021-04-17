@@ -4,6 +4,16 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/reminderListFragment">
 
+<!--    <activity-->
+<!--        android:id="@+id/authenticationActivity"-->
+<!--        android:name="com.udacity.project4.authentication.AuthenticationActivity"-->
+<!--        android:label="AuthenticationActivity">-->
+<!--        <action-->
+<!--            android:id="@+id/toMainActivity"-->
+<!--            app:destination="@id/mainActivity">-->
+<!--        </action>-->
+<!--    </activity>-->
+
     <fragment
         android:id="@+id/reminderListFragment"
         android:name="com.udacity.project4.locationreminders.reminderslist.ReminderListFragment"
@@ -12,10 +22,12 @@
             android:id="@+id/to_save_reminder"
             app:destination="@id/saveReminderFragment" />
     </fragment>
+
     <activity
         android:id="@+id/mainActivity"
         android:name="com.udacity.project4.locationreminders.RemindersActivity"
         android:label="MainActivity" />
+
     <fragment
         android:id="@+id/saveReminderFragment"
         android:name="com.udacity.project4.locationreminders.savereminder.SaveReminderFragment"
@@ -31,5 +43,6 @@
         android:id="@+id/selectLocationFragment"
         android:name="com.udacity.project4.locationreminders.savereminder.selectreminderlocation.SelectLocationFragment"
         android:label="Select Location" />
+
 
 </navigation>

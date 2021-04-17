@@ -1,4 +1,4 @@
-package com.udacity.project4.locationreminders.reminderslist
+package com.udacity.project4.locationreminders.savereminder
 
 import android.app.Application
 import android.os.Bundle
@@ -6,20 +6,23 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import androidx.test.core.app.ApplicationProvider.getApplicationContext
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
+import androidx.test.rule.GrantPermissionRule
 import com.udacity.project4.MainAndroidTestCoroutineRule
 import com.udacity.project4.R
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
-import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
+import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -30,22 +33,24 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
-import org.mockito.Mockito.*
-import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.ViewMatchers.*
-import org.junit.After
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
 //UI Testing
 @MediumTest
-class ReminderListFragmentTest: AutoCloseKoinTest() {
+class SaveReminderFragmentTest: AutoCloseKoinTest() {
 
     private lateinit var appContext: Application
     private lateinit var dataSource: ReminderDataSource
 
     @get: Rule
     val mainCoroutineRule = MainAndroidTestCoroutineRule()
+
+    @get:Rule
+    val permissionRule: GrantPermissionRule = GrantPermissionRule
+        .grant(android.Manifest.permission.ACCESS_FINE_LOCATION)
 
     @get:Rule
     var instantTaskExecutorRule = InstantTaskExecutorRule()
@@ -55,7 +60,7 @@ class ReminderListFragmentTest: AutoCloseKoinTest() {
         // stop the original app koin
         stopKoin()
 
-        appContext = getApplicationContext()
+        appContext = ApplicationProvider.getApplicationContext()
         var testModules = module {
             viewModel {
                 RemindersListViewModel(appContext, get() as ReminderDataSource)
@@ -104,65 +109,42 @@ class ReminderListFragmentTest: AutoCloseKoinTest() {
         54.42401049833613)
 
     /**
-     * Test the navigation to [SaveReminderFragment].
+     * Test the navigation to [SelectLocationFragment].
      */
     @Test
-    fun clickAddReminderFAB_navigateToSaveReminderFragment() {
-        // GIVEN on the reminder list screen
-        val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
+    fun clickSelectLocation_navigateToSelectLocationFragment() {
+        // GIVEN on the save reminder screen
+        val scenario = launchFragmentInContainer<SaveReminderFragment>(Bundle(), R.style.AppTheme)
         val navController = mock(NavController::class.java)
 
         scenario.onFragment {
             Navigation.setViewNavController(it.view!!, navController)
         }
 
-        // WHEN click on "+" button
-        onView(withId(R.id.addReminderFAB)).perform(click())
+        // WHEN click on select location button
+        onView(withId(R.id.selectLocation)).perform(click())
 
-        // THEN Verify that we navigate to save reminder screen
-        verify(navController).navigate(ReminderListFragmentDirections.toSaveReminder())
+        // THEN Verify that we navigate to select location screen
+        verify(navController).navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
     }
 
     /**
-     * Test the displayed data on the UI.
+     * Test the navigation to [ReminderListFragment]
      */
     @Test
-    fun reminderList_displayRemindersDataInUI() {
-        // GIVEN a list of reminders
-        runBlocking {
-            dataSource.saveReminder(reminder1)
-            dataSource.saveReminder(reminder2)
+    fun clickSaveReminder_navigateToReminderListFragment() {
+        // GIVEN on the save reminder screen
+        val scenario = launchFragmentInContainer<SaveReminderFragment>(Bundle(), R.style.AppTheme)
+        val navController = mock(NavController::class.java)
+
+        scenario.onFragment {
+            Navigation.setViewNavController(it.view!!, navController)
         }
 
-        // WHEN on the reminder list screen
-        launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
+        // WHEN click on save reminder button
+        onView(withId(R.id.saveReminder)).perform(click())
 
-        // THEN reminders are displayed on the screen
-        onView(withId(R.id.reminderssRecyclerView)).check(matches(isDisplayed()))
-        onView(withId(R.id.reminderssRecyclerView))
-            .check(matches(hasDescendant(withText(reminder1.title))))
-            .check(matches(hasDescendant(withText(reminder1.description))))
-            .check(matches(hasDescendant(withText(reminder1.location))))
-            .check(matches(hasDescendant(withText(reminder2.title))))
-            .check(matches(hasDescendant(withText(reminder2.description))))
-            .check(matches(hasDescendant(withText(reminder2.location))))
-    }
-
-    /**
-     * Add testing for the error messages.
-     */
-    @Test
-    fun remindersList_displayNoData() {
-        // GIVEN an empty reminders list
-        runBlocking {
-            dataSource.deleteAllReminders()
-        }
-
-        // WHEN on the reminder list screen
-        launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
-
-        // THEN "No Data" is displayed on the screen
-        onView(withId(R.id.noDataTextView)).check(matches(isDisplayed()))
-        onView(withId(R.id.noDataTextView)).check(matches(withText(appContext.getString(R.string.no_data))))
+        // THEN Verify that we navigate to reminder list screen
+        verify(navController).navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
     }
 }
