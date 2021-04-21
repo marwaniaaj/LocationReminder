@@ -103,16 +103,16 @@ class SaveReminderFragment : BaseFragment() {
     private fun saveReminder(reminderData: ReminderDataItem) {
 
         if (_viewModel.validateAndSaveReminder(reminderData)) {
+
+            Toast.makeText(requireActivity(), _viewModel.showToast.value,
+                Toast.LENGTH_SHORT)
+                .show()
+
             addGeofenceForReminder(reminderData)
         }
 
-        Toast.makeText(requireActivity(), _viewModel.showToast.value,
-            Toast.LENGTH_SHORT)
-            .show()
-
         _viewModel.navigationCommand.value =
                 NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
-
     }
 
     @SuppressLint("MissingPermission")
